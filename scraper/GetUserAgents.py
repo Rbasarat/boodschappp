@@ -42,7 +42,7 @@ class GetUserAgents:
         if "safari" in split[0].lower():
             return float(split[1]) > 12
         if "edge" in split[0].lower():
-            return float(split[1]) > 17
+            return float(split[1]) > 79
         if "opera" in split[0].lower():
             return float(split[1]) > 60
         if "internet" in split[0].lower():

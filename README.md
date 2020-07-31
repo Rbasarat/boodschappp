@@ -8,5 +8,8 @@ Boodschappen lijst app.
 - Fix error handling
     - Also error logging
 - Find reliable way to get user agents
+	- Fake user agents package
+		- Maybe mimic logic.
+		- or use package
     - Manual is fine for now.
 - Maybe find reliable proxies.
