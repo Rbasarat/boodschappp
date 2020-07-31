@@ -7,6 +7,7 @@ Boodschappen lijst app.
     - Same for passwords
 - Fix error handling
     - Also error logging
+    - (De)centralize error handling -> where are responsibilities
 - Find reliable way to get user agents
 	- Fake user agents package
 		- Maybe mimic logic.
