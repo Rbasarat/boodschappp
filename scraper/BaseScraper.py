@@ -16,15 +16,20 @@ class BaseScraper:
     user_agents = []
     cnx = None
     cursor = None
-    query_get_user_agents = "SELECT agent FROM UserAgents"
+    store_id = None
 
-    def __init__(self):
+    def __init__(self, store):
         try:
             self.cnx = mysql.connector.connect(**self.config)
-            self.cursor = self.cnx.self.cursor()
-            print("Retrieving user agents..")
-            self.cursor.execute(self.query_get_user_agents)
-            self.user_agents = [row[0] for row in self.cursor.fetchall()]
+            self.cursor = self.cnx.cursor(dictionary=True)
+            print("Setting store Id.")
+            self.get_store_id(store)
+            if self.store_id is None or len(self.store_id) == 0:
+                raise ValueError("Store not found")
+            else:
+                self.store_id = self.store_id['Id']
+            print("Retrieving user agents.")
+            self.get_user_agents()
 
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -33,14 +38,43 @@ class BaseScraper:
                 print("Database does not exist")
             else:
                 print(err)
-        else:
-            self.cursor.close()
-            self.cnx.close()
 
+    def __del__(self):
+        self.cursor.close()
+        self.cnx.close()
+
+    def is_price_changed(self, product_id, price):
+        self.cursor.execute("SELECT price FROM Product WHERE Id = %s AND store_id = %s ORDER BY last_updated DESC ",
+                            (product_id, self.store_id,))
+        result = self.cursor.fetchall()
+        if len(result) > 0:
+            return result[0]['price'] != price
+        else:
+            return True
+
+    # We already checked for null when calling this.
+    def add_product(self, product_id, name, image, price, bonus):
+        price_in_cents = int(str(price).ljust(4, "0"))
+        if self.is_price_changed(product_id, price_in_cents):
+            query = ("INSERT INTO Product (Id, store_id, name, image, price, bonus) "
+                     "VALUES (%s, %s, %s, %s, %s, %s)")
+            product = (product_id, self.store_id, name, image, price_in_cents, bonus)
+            self.write_to_db(query, product)
+
+    def get_user_agents(self):
+        self.cursor.execute("SELECT agent FROM UserAgents")
+        self.user_agents = self.cursor.fetchall()
+
+    def get_store_id(self, store_name):
+        query = "SELECT Id FROM GroceryStore WHERE store_name = %s"
+        self.cursor.execute(query, (store_name,))
+        self.store_id = self.cursor.fetchone()
+
+    # TODO: error/logging do we want it here or not?
     def write_to_db(self, query, data):
         try:
             self.cursor.execute(query, data)
-            self.cnx = self.cursor.commit()
+            self.cnx.commit()
             return True
         except mysql.connector.Error as e:
             try:
@@ -59,11 +93,13 @@ class BaseScraper:
     def safe_request(self, url):
         time.sleep(random.randint(1000, 2500) / 1000)
         try:
-            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents)})
+            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents['agent'])})
             return response
         # TODO: catch different errors
         except requests.exceptions.RequestException:
             print("Error retrieving url: " + url)
 
 
-p = BaseScraper()
+p = BaseScraper("Albert Heijn")
+p.add_product(100105, "test", "https:nivero.io", 523555, 0)
+del p
