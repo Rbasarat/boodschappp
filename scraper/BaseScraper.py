@@ -26,6 +26,7 @@ class BaseScraper:
     store_id = None
     scrape_history_id = None
     scrape_error = 0
+    retry_count = 0
 
     def __init__(self, store, scrape_type):
         try:
@@ -44,18 +45,22 @@ class BaseScraper:
 
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
+                self.add_scrape_error("Something is wrong with your user name or password")
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exist")
+                self.add_scrape_error("Database does not exist")
             else:
-                print(err)
+                self.add_scrape_error(err)
 
     def __del__(self):
         self.finish_scrape_history()
         self.cursor.close()
         self.cnx.close()
 
-    def increment_scrape_error(self):
+    def add_scrape_error(self, message, product_id=None, ):
+        query = ("INSERT INTO ScrapeErrors"
+                 "(scrape_id, product_id, date, message)"
+                 "VALUES ('%s', '%s', '%s')")
+        self.write_to_db(query, (self.scrape_history_id, product_id, message,))
         self.scrape_error += 1
 
     def init_scrape_history(self, scrape_type):
@@ -81,7 +86,9 @@ class BaseScraper:
 
     # We already checked for null when calling this.
     def add_product(self, product_id, name, image, price, bonus):
+        # Price is in cents.
         price_in_cents = int(str(price).ljust(4, "0"))
+        # Only write new record if price has changed. Safes db space.
         if self.is_price_changed(product_id, price_in_cents):
             query = ("INSERT INTO Product (Id, store_id, name, image, price, bonus) "
                      "VALUES (%s, %s, %s, %s, %s, %s)")
@@ -93,8 +100,7 @@ class BaseScraper:
         self.user_agents = self.cursor.fetchall()
 
     def get_store_id(self, store_name):
-        query = "SELECT Id FROM GroceryStore WHERE store_name = %s"
-        self.cursor.execute(query, (store_name,))
+        self.cursor.execute("SELECT Id FROM GroceryStore WHERE store_name = %s", (store_name,))
         self.store_id = self.cursor.fetchone()
 
     # TODO: error/logging do we want it here or not?
@@ -102,29 +108,26 @@ class BaseScraper:
         try:
             self.cursor.execute(query, data)
             self.cnx.commit()
-            return True
         except mysql.connector.Error as e:
             try:
-                print("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
-                return False
+                self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
             except IndexError:
-                print("MySQL Error: %s" % str(e))
-                return False
-        except TypeError as e:
-            print(e)
-            return False
-        except ValueError as e:
-            print(e)
-            return False
+                self.add_scrape_error("MySQL Error: %s" % str(e))
 
     def safe_request(self, url):
         time.sleep(random.randint(1000, 2500) / 1000)
         try:
+            if self.retry_count > 3:
+                raise requests.exceptions.RequestException
             response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents["agent"])})
             return response
         # TODO: catch different errors
         except requests.exceptions.RequestException:
-            print("Error retrieving url: " + url)
+            self.safe_request(url)
+            self.retry_count += 1
+        finally:
+            self.retry_count = 0
+            self.add_scrape_error("Failed to retrieve url:" + url)
 
 
 p = BaseScraper("Albert Heijn", ScrapeType.FULL)
