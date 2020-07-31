@@ -8,6 +8,7 @@ Boodschappen lijst app.
 - Fix error handling
     - Also error logging
     - (De)centralize error handling -> where are responsibilities
+    - Extend error method in basescraper.
 - Find reliable way to get user agents
 	- Fake user agents package
 		- Maybe mimic logic.

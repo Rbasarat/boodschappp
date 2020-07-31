@@ -3,6 +3,13 @@ import random
 import time
 import mysql.connector
 from mysql.connector import errorcode
+import enum
+from datetime import datetime
+
+
+class ScrapeType(enum.Enum):
+    FULL = 1
+    SINGLE = 2
 
 
 class BaseScraper:
@@ -17,8 +24,10 @@ class BaseScraper:
     cnx = None
     cursor = None
     store_id = None
+    scrape_history_id = None
+    scrape_error = 0
 
-    def __init__(self, store):
+    def __init__(self, store, scrape_type):
         try:
             self.cnx = mysql.connector.connect(**self.config)
             self.cursor = self.cnx.cursor(dictionary=True)
@@ -27,7 +36,9 @@ class BaseScraper:
             if self.store_id is None or len(self.store_id) == 0:
                 raise ValueError("Store not found")
             else:
-                self.store_id = self.store_id['Id']
+                self.store_id = self.store_id["Id"]
+
+            self.init_scrape_history(scrape_type)
             print("Retrieving user agents.")
             self.get_user_agents()
 
@@ -40,15 +51,31 @@ class BaseScraper:
                 print(err)
 
     def __del__(self):
+        self.finish_scrape_history()
         self.cursor.close()
         self.cnx.close()
+
+    def increment_scrape_error(self):
+        self.scrape_error += 1
+
+    def init_scrape_history(self, scrape_type):
+        self.cursor.execute('SELECT UUID()')
+        self.scrape_history_id = self.cursor.fetchone()["UUID()"]
+        query = ("INSERT INTO ScrapeHistory "
+                 "(Id, store_id, scrape_type) "
+                 "VALUES (%s, %s, %s)")
+        self.write_to_db(query, (self.scrape_history_id, self.store_id, scrape_type.value,))
+
+    def finish_scrape_history(self):
+        query = "UPDATE ScrapeHistory SET end_date= %s, error_count= %s WHERE Id = %s"
+        self.write_to_db(query, (datetime.now(), self.scrape_error, self.scrape_history_id,))
 
     def is_price_changed(self, product_id, price):
         self.cursor.execute("SELECT price FROM Product WHERE Id = %s AND store_id = %s ORDER BY last_updated DESC ",
                             (product_id, self.store_id,))
         result = self.cursor.fetchall()
         if len(result) > 0:
-            return result[0]['price'] != price
+            return result[0]["price"] != price
         else:
             return True
 
@@ -93,13 +120,13 @@ class BaseScraper:
     def safe_request(self, url):
         time.sleep(random.randint(1000, 2500) / 1000)
         try:
-            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents['agent'])})
+            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents["agent"])})
             return response
         # TODO: catch different errors
         except requests.exceptions.RequestException:
             print("Error retrieving url: " + url)
 
 
-p = BaseScraper("Albert Heijn")
+p = BaseScraper("Albert Heijn", ScrapeType.FULL)
 p.add_product(100105, "test", "https:nivero.io", 523555, 0)
 del p
