@@ -42,6 +42,8 @@ class BaseScraper:
             self.init_scrape_history(scrape_type)
             print("Retrieving user agents.")
             self.get_user_agents()
+            if len(self.user_agents) < 0:
+                raise Exception("No user agents found!")
 
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -110,7 +112,8 @@ class BaseScraper:
             self.cnx.commit()
         except mysql.connector.Error as e:
             try:
-                self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
+                # self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
+                print(e.args[1])
             except IndexError:
                 self.add_scrape_error("MySQL Error: %s" % str(e))
 
@@ -119,17 +122,13 @@ class BaseScraper:
         try:
             if self.retry_count > 3:
                 raise requests.exceptions.RequestException
-            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents["agent"])})
+            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents)["agent"]})
             return response
         # TODO: catch different errors
         except requests.exceptions.RequestException:
             self.safe_request(url)
             self.retry_count += 1
         finally:
-            self.retry_count = 0
-            self.add_scrape_error("Failed to retrieve url:" + url)
-
-
-p = BaseScraper("Albert Heijn", ScrapeType.FULL)
-p.add_product(100105, "test", "https:nivero.io", 523555, 0)
-del p
+            if self.retry_count > 3:
+                self.retry_count = 0
+                self.add_scrape_error("Failed to retrieve url:" + url)
