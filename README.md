@@ -9,9 +9,9 @@ Boodschappen lijst app.
     - Also error logging
     - (De)centralize error handling -> where are responsibilities
     - Basescraper error handler should be use every finally.
-- Find reliable way to get user agents
-	- Fake user agents package
-		- Maybe mimic logic.
-		- or use package
-    - Manual is fine for now.
-- Maybe find reliable proxies.
+- Figure out how to deal with bonus products
+
+- Ah specific:
+    - Wijnen pagina is anders
+    - drogisterij verzorging overslaan
+    - logica bouwen page=? specific integer
