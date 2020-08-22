@@ -1,11 +1,8 @@
-import requests
-import random
-import time
 import mysql.connector
 from mysql.connector import errorcode
 import enum
 from datetime import datetime
-
+import time
 
 class ScrapeType(enum.Enum):
     FULL = 1
@@ -13,24 +10,22 @@ class ScrapeType(enum.Enum):
 
 
 class BaseScraper:
-    config = {
+    cnx = None
+    cursor = None
+    store_id = None
+    scrape_history_id = None
+    scrape_error = 0
+    db_config = {
         "user": "root",
         "password": "admin",
         "host": "192.168.0.123",
         "database": "boodschappp",
         "raise_on_warnings": True
     }
-    user_agents = []
-    cnx = None
-    cursor = None
-    store_id = None
-    scrape_history_id = None
-    scrape_error = 0
-    retry_count = 0
 
     def __init__(self, store, scrape_type):
         try:
-            self.cnx = mysql.connector.connect(**self.config)
+            self.cnx = mysql.connector.connect(**self.db_config)
             self.cursor = self.cnx.cursor(dictionary=True)
             print("Setting store Id.")
             self.get_store_id(store)
@@ -40,10 +35,6 @@ class BaseScraper:
                 self.store_id = self.store_id["Id"]
 
             self.init_scrape_history(scrape_type)
-            print("Retrieving user agents.")
-            self.get_user_agents()
-            if len(self.user_agents) < 0:
-                raise Exception("No user agents found!")
 
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -55,13 +46,12 @@ class BaseScraper:
 
     def __del__(self):
         self.finish_scrape_history()
-        self.cursor.close()
         self.cnx.close()
 
     def add_scrape_error(self, message, product_id=None, ):
         query = ("INSERT INTO ScrapeErrors"
-                 "(scrape_id, product_id, date, message)"
-                 "VALUES ('%s', '%s', '%s')")
+                 "(scrape_id, product_id, message)"
+                 "VALUES (%s, %s, %s)")
         self.write_to_db(query, (self.scrape_history_id, product_id, message,))
         self.scrape_error += 1
 
@@ -97,10 +87,6 @@ class BaseScraper:
             product = (product_id, self.store_id, name, image, price_in_cents, bonus)
             self.write_to_db(query, product)
 
-    def get_user_agents(self):
-        self.cursor.execute("SELECT agent FROM UserAgents")
-        self.user_agents = self.cursor.fetchall()
-
     def get_store_id(self, store_name):
         self.cursor.execute("SELECT Id FROM GroceryStore WHERE store_name = %s", (store_name,))
         self.store_id = self.cursor.fetchone()
@@ -110,25 +96,10 @@ class BaseScraper:
         try:
             self.cursor.execute(query, data)
             self.cnx.commit()
+            return self.cursor, self.cnx
         except mysql.connector.Error as e:
             try:
-                # self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
-                print(e.args[1])
+                self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
             except IndexError:
                 self.add_scrape_error("MySQL Error: %s" % str(e))
 
-    def safe_request(self, url):
-        time.sleep(random.randint(1000, 2500) / 1000)
-        try:
-            if self.retry_count > 3:
-                raise requests.exceptions.RequestException
-            response = requests.get(url, headers={"User-Agent": random.choice(self.user_agents)["agent"]})
-            return response
-        # TODO: catch different errors
-        except requests.exceptions.RequestException:
-            self.safe_request(url)
-            self.retry_count += 1
-        finally:
-            if self.retry_count > 3:
-                self.retry_count = 0
-                self.add_scrape_error("Failed to retrieve url:" + url)
