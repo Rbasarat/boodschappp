@@ -3,6 +3,7 @@ from mysql.connector import errorcode
 import enum
 from datetime import datetime
 
+
 class ScrapeType(enum.Enum):
     FULL = 1
     SINGLE = 2
@@ -75,15 +76,34 @@ class BaseScraper:
         else:
             return True
 
+    def get_bonus_types(self, query):
+        self.cursor.execute("SELECT Id FROM BonusType WHERE store_id = %s AND bonus_type LIKE %s",
+                            (self.store_id, "%{}%".format(query),))
+        return self.cursor.fetchone()
+
+    def add_bonus_type(self, bonus):
+        query = ("INSERT INTO BonusType (store_id, bonus_type) "
+                 "VALUES (%s, %s)")
+        self.write_to_db(query, (self.store_id, bonus,))
+
+    def get_product(self, product_id):
+        self.cursor.execute("SELECT * FROM Product WHERE Id = %s",
+                            (product_id,))
+        return self.cursor.fetchone()
+
     # We already checked for null when calling this.
     def add_product(self, product_id, name, image, price, bonus):
-        # Price is in cents.
-        price_in_cents = int(str(price).ljust(4, "0"))
         # Only write new record if price has changed. Safes db space.
-        if self.is_price_changed(product_id, price_in_cents):
+        if self.get_product(product_id):
+            if self.is_price_changed(product_id, price):
+                print("Update price")
+                query = (
+                    "UPDATE Product	SET	Id=%s, name=%s, image=%s, price=%s, bonus=%s WHERE Id=%s")
+                self.write_to_db(query, (product_id, name, image, price, bonus, product_id))
+        else:
             query = ("INSERT INTO Product (Id, store_id, name, image, price, bonus) "
                      "VALUES (%s, %s, %s, %s, %s, %s)")
-            product = (product_id, self.store_id, name, image, price_in_cents, bonus)
+            product = (product_id, self.store_id, name, image, price, bonus)
             self.write_to_db(query, product)
 
     def get_store_id(self, store_name):
@@ -101,4 +121,3 @@ class BaseScraper:
                 self.add_scrape_error("MySQL Error [%d]: %s" % (e.args[0], e.args[1]))
             except IndexError:
                 self.add_scrape_error("MySQL Error: %s" % str(e))
-
