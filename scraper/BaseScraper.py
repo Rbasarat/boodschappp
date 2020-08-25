@@ -2,7 +2,6 @@ import mysql.connector
 from mysql.connector import errorcode
 import enum
 from datetime import datetime
-import time
 
 class ScrapeType(enum.Enum):
     FULL = 1

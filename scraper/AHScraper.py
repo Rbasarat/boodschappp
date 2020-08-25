@@ -7,10 +7,11 @@ import random
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import re
 
 options = Options()
-# options.headless = True
-driver_path = "./driver/chromedriver.exe"
+options.headless = True
+driver_path = "./driver/chromedriver"
 base_scraper = BaseScraper("Albert Heijn", ScrapeType.SINGLE)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
 ah_base_url = "https://www.ah.nl"
@@ -40,6 +41,13 @@ def safe_request(url, element=None):
             base_scraper.add_scrape_error("TimeoutException: Failed to retrieve url:" + url)
 
 
+def calculate_bonus(product):
+    bonus = product.find("div", {"class": "shield_root__YmXCB"})
+    if bonus:
+        pass
+    else:
+        return 0
+
 def parse_all():
     # TODO: switch this after testing
     # homepage = safe_request(ah_base_url + "producten")
@@ -62,10 +70,14 @@ def parse_all():
     #     productPage  = safe_request(ah_base_url + category_url + soort_url + "&page=100")
     productPage = open("./testHtml/ah_producten_category_soort.html", "rb")
     soup = BeautifulSoup(productPage, "lxml")
-
-    #
-    # soup = BeautifulSoup(category, "lxml")
-    print(productPage)
+    products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
+    for product in products:
+        name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
+        image = product.find("img")["src"]
+        product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
+        price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
+            product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
+        print(price)
 
 
 def update_product():
