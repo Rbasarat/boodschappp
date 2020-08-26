@@ -68,7 +68,7 @@ class BaseScraper:
         self.write_to_db(query, (datetime.now(), self.scrape_error, self.scrape_history_id,))
 
     def is_price_changed(self, product_id, price):
-        self.cursor.execute("SELECT price FROM Product WHERE Id = %s AND store_id = %s ORDER BY last_updated DESC ",
+        self.cursor.execute("SELECT price FROM Products WHERE Id = %s AND store_id = %s ORDER BY last_updated DESC ",
                             (product_id, self.store_id,))
         result = self.cursor.fetchall()
         if len(result) > 0:
@@ -82,12 +82,12 @@ class BaseScraper:
         return self.cursor.fetchone()
 
     def add_bonus_type(self, bonus):
-        query = ("INSERT INTO BonusType (store_id, bonus_type) "
+        query = ("INSERT INTO BonusTypes (store_id, bonus_type) "
                  "VALUES (%s, %s)")
         self.write_to_db(query, (self.store_id, bonus,))
 
     def get_product(self, product_id):
-        self.cursor.execute("SELECT * FROM Product WHERE Id = %s",
+        self.cursor.execute("SELECT * FROM Products WHERE Id = %s",
                             (product_id,))
         return self.cursor.fetchone()
 
@@ -107,7 +107,7 @@ class BaseScraper:
             self.write_to_db(query, product)
 
     def get_store_id(self, store_name):
-        self.cursor.execute("SELECT Id FROM GroceryStore WHERE store_name = %s", (store_name,))
+        self.cursor.execute("SELECT Id FROM GroceryStores WHERE store_name = %s", (store_name,))
         self.store_id = self.cursor.fetchone()
 
     # TODO: error/logging do we want it here or not?
