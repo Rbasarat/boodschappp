@@ -26,7 +26,7 @@ class BaseScraper:
     def __init__(self, store, scrape_type):
         try:
             self.cnx = mysql.connector.connect(**self.db_config)
-            self.cursor = self.cnx.cursor(dictionary=True)
+            self.cursor = self.cnx.cursor(dictionary=True, buffered=True)
             print("Setting store Id.")
             self.get_store_id(store)
             if self.store_id is None or len(self.store_id) == 0:

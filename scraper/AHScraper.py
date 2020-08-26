@@ -1,7 +1,6 @@
 import random
 import re
 import time
-import traceback
 from sys import argv
 
 from bs4 import BeautifulSoup
@@ -54,6 +53,7 @@ def safe_request(url, element=None):
     finally:
         if retry_count > 3:
             base_scraper.add_scrape_error("TimeoutException: Failed to retrieve url:" + url)
+            return
 
 
 def calculate_bonus(product):
@@ -70,11 +70,12 @@ def calculate_bonus(product):
 
 
 def get_urls():
+    urls = []
     try:
         homepage = safe_request(ah_base_url + "/producten")
         soup = BeautifulSoup(homepage, "lxml")
         scrape_urls = soup.find_all("div", {"class": "product-category-overview_category__1H99m"})
-        urls = []
+
         for url in scrape_urls:
             category_url = url.find("a")["href"]
             # Wijn page is different.
@@ -100,7 +101,8 @@ def get_urls():
 
         return urls
     except Exception as err:
-        base_scraper.add_scrape_error(traceback.format_exc(err))
+        base_scraper.add_scrape_error(str(err))
+        return urls
 
 
 def scrape_product(product_page):
@@ -108,7 +110,9 @@ def scrape_product(product_page):
     products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
     for product in products:
         gall_gall = product.find("svg", {"class": "svg--gall"})
-        if not gall_gall:
+        etos = product.find("svg", {"class": "svg--etos"})
+        
+        if not gall_gall or etos:
             name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
             image = product.find("img")["src"]
             product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
@@ -127,24 +131,22 @@ def parse_all(urls=None):
         random.shuffle(product_urls)
         current_url = None
         try:
-            current_url = product_urls.pop()
-            product_page = safe_request(current_url)
-            scrape_product(product_page)
+            while len(product_urls) > 0:
+                current_url = product_urls.pop()
+                product_page = safe_request(current_url)
+                scrape_product(product_page)
         except Exception as err:
-            base_scraper.add_scrape_error(traceback.format_exc(err))
+            print(err)
             base_scraper.add_scrape_error("Error scraping url:" + current_url)
             parse_all(product_urls)
 
-
-def update_product():
-    print("test2")
+    else:
+        base_scraper.add_scrape_error("No urls retrieved.")
 
 
 if __name__ == '__main__':
     if int(argv[1]) == 1:
         parse_all()
-    elif int(argv[1]) == 2:
-        update_product()
 
     # This keeps reference alive so we can call finish scrape history.
     del base_scraper
