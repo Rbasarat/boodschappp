@@ -1,17 +1,19 @@
-from BaseScraper import ScrapeType
-from BaseScraper import BaseScraper
-from bs4 import BeautifulSoup
-from sys import argv
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 import random
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 import re
+import time
 import traceback
+from sys import argv
+
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+from BaseScraper import BaseScraper
+from BaseScraper import ScrapeType
 
 options = Options()
 options.headless = False
@@ -20,6 +22,8 @@ base_scraper = BaseScraper("Albert Heijn", ScrapeType.SINGLE)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
 ah_base_url = "https://www.ah.nl"
 
+
+# homepage = open("./testHtml/ah_producten.html", "rb")
 
 def safe_request(url, element=None):
     retry_count = 0
@@ -65,27 +69,12 @@ def calculate_bonus(product):
         return None
 
 
-def scrape_product(product_page):
-    soup = BeautifulSoup(product_page, "lxml")
-    products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
-    for product in products:
-        gall_gall = product.find("svg", {"class": "svg--gall"})
-        if not gall_gall:
-            name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
-            image = product.find("img")["src"]
-            product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
-            price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
-                product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
-            bonus = calculate_bonus(product)
-            base_scraper.add_product(product_id, name, image, price, bonus)
-
-
-def parse_all():
+def get_urls():
     try:
         homepage = safe_request(ah_base_url + "/producten")
         soup = BeautifulSoup(homepage, "lxml")
         scrape_urls = soup.find_all("div", {"class": "product-category-overview_category__1H99m"})
-
+        urls = []
         for url in scrape_urls:
             category_url = url.find("a")["href"]
             # Wijn page is different.
@@ -107,11 +96,44 @@ def parse_all():
                 soort_url = soort["href"]
                 # skip this specific one since it has over 2k products
                 if soort_url != "?soort=6407":
-                    product_page = safe_request(ah_base_url + category_url + soort_url + "&page=100")
-                    scrape_product(product_page)
+                    urls.append(ah_base_url + category_url + soort_url + "&page=100")
+
+        return urls
     except Exception as err:
         base_scraper.add_scrape_error(traceback.format_exc(err))
-        
+
+
+def scrape_product(product_page):
+    soup = BeautifulSoup(product_page, "lxml")
+    products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
+    for product in products:
+        gall_gall = product.find("svg", {"class": "svg--gall"})
+        if not gall_gall:
+            name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
+            image = product.find("img")["src"]
+            product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
+            price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
+                product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
+            bonus = calculate_bonus(product)
+            base_scraper.add_product(product_id, name, image, price, bonus)
+
+
+def parse_all(urls=None):
+    if urls:
+        product_urls = urls
+    else:
+        product_urls = get_urls()
+    if len(product_urls) > 0:
+        random.shuffle(product_urls)
+        current_url = None
+        try:
+            current_url = product_urls.pop()
+            product_page = safe_request(current_url)
+            scrape_product(product_page)
+        except Exception as err:
+            base_scraper.add_scrape_error(traceback.format_exc(err))
+            base_scraper.add_scrape_error("Error scraping url:" + current_url)
+            parse_all(product_urls)
 
 
 def update_product():
