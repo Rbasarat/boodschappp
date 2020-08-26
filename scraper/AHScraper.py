@@ -2,7 +2,10 @@ from BaseScraper import ScrapeType
 from BaseScraper import BaseScraper
 from bs4 import BeautifulSoup
 from sys import argv
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 import random
 import time
 from selenium import webdriver
@@ -11,7 +14,7 @@ import re
 import traceback
 
 options = Options()
-options.headless = True
+options.headless = False
 driver_path = "./driver/chromedriver.exe"
 base_scraper = BaseScraper("Albert Heijn", ScrapeType.SINGLE)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
@@ -22,13 +25,17 @@ def safe_request(url, element=None):
     retry_count = 0
 
     try:
-        time.sleep(random.randint(1000, 10000) / 1000)
+        time.sleep(random.randint(1000, 2500) / 1000)
         if retry_count > 3:
             return
         driver.get(url)
-        if element:
-            driver.find_elements_by_class_name(element)[1].click()
+        # Make sure the element is clickable. In case of ah site react needs to load in
         time.sleep(2)
+        if element:
+            # I don't know if this solves the problem that the element is no clickable when executing the click.
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, element)))
+            driver.find_elements_by_class_name(element)[1].click()
+
         return driver.page_source
         # TODO: catch different errors
     except TimeoutException:
@@ -37,6 +44,8 @@ def safe_request(url, element=None):
     except NoSuchElementException:
         base_scraper.add_scrape_error("Element not found on: " + url + "with element:" + element)
     except Exception as err:
+        base_scraper.add_scrape_error("Generic error on safe request" + err.args[1])
+    except ElementNotInteractableException as err:
         base_scraper.add_scrape_error("Generic error on safe request" + err.args[1])
     finally:
         if retry_count > 3:
@@ -60,13 +69,15 @@ def scrape_product(product_page):
     soup = BeautifulSoup(product_page, "lxml")
     products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
     for product in products:
-        name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
-        image = product.find("img")["src"]
-        product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
-        price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
-            product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
-        bonus = calculate_bonus(product)
-        base_scraper.add_product(product_id, name, image, price, bonus)
+        gall_gall = product.find("svg", {"class": "svg--gall"})
+        if not gall_gall:
+            name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
+            image = product.find("img")["src"]
+            product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
+            price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
+                product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
+            bonus = calculate_bonus(product)
+            base_scraper.add_product(product_id, name, image, price, bonus)
 
 
 def parse_all():
@@ -99,7 +110,8 @@ def parse_all():
                     product_page = safe_request(ah_base_url + category_url + soort_url + "&page=100")
                     scrape_product(product_page)
     except Exception as err:
-        base_scraper.add_scrape_error( traceback.print_exception(type(err), err, err.__traceback__))
+        base_scraper.add_scrape_error(traceback.format_exc(err))
+        
 
 
 def update_product():
