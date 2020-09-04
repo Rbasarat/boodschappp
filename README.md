@@ -1,6 +1,11 @@
 # boodschappp
 Boodschappen lijst app. 
 
+# To run this scraper:
+- Install chrome
+- Download chromedriver to ./scraper/driver/
+- `$ python AHScraper.py 1`
+
 # TODO:
 - Set up logging for python
 - Figure out how to fix config
