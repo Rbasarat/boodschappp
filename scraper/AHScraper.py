@@ -3,6 +3,7 @@ import re
 import time
 from sys import argv
 
+from alive_progress import alive_bar
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
@@ -75,29 +76,30 @@ def get_urls():
         homepage = safe_request(ah_base_url + "/producten")
         soup = BeautifulSoup(homepage, "lxml")
         scrape_urls = soup.find_all("div", {"class": "product-category-overview_category__1H99m"})
+        with alive_bar(len(scrape_urls), title="Retrieving urls...", spinner="classic") as bar:
+            for url in scrape_urls:
+                category_url = url.find("a")["href"]
+                # Wijn page is different.
+                if "wijn" in category_url:
+                    category = safe_request(ah_base_url + category_url)
+                    soup = BeautifulSoup(category, "lxml")
+                    product_soorten = soup.find("span", string="Wijnsoort",
+                                                attrs={'class': 'filter-group_titleText__2ErIs'}) \
+                        .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
+                        .find_all("a", {"class": "filter-group_filter__2kWhF"})
+                else:
+                    category = safe_request(ah_base_url + category_url, "filter-group_showMore__3nXJH")
+                    soup = BeautifulSoup(category, "lxml")
+                    product_soorten = soup.find("span", string="Soorten", attrs={'class': 'filter-group_titleText__2ErIs'}) \
+                        .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
+                        .find_all("a", {"class": "filter-group_filter__2kWhF"})
 
-        for url in scrape_urls:
-            category_url = url.find("a")["href"]
-            # Wijn page is different.
-            if "wijn" in category_url:
-                category = safe_request(ah_base_url + category_url)
-                soup = BeautifulSoup(category, "lxml")
-                product_soorten = soup.find("span", string="Wijnsoort",
-                                            attrs={'class': 'filter-group_titleText__2ErIs'}) \
-                    .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
-                    .find_all("a", {"class": "filter-group_filter__2kWhF"})
-            else:
-                category = safe_request(ah_base_url + category_url, "filter-group_showMore__3nXJH")
-                soup = BeautifulSoup(category, "lxml")
-                product_soorten = soup.find("span", string="Soorten", attrs={'class': 'filter-group_titleText__2ErIs'}) \
-                    .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
-                    .find_all("a", {"class": "filter-group_filter__2kWhF"})
-
-            for soort in product_soorten:
-                soort_url = soort["href"]
-                # skip this specific one since it has over 2k products
-                if soort_url != "?soort=6407":
-                    urls.append(ah_base_url + category_url + soort_url + "&page=100")
+                for soort in product_soorten:
+                    soort_url = soort["href"]
+                    # skip this specific one since it has over 2k products
+                    if soort_url != "?soort=6407":
+                        urls.append(ah_base_url + category_url + soort_url + "&page=68")
+                bar()
 
         return urls
     except Exception as err:
@@ -131,10 +133,12 @@ def parse_all(urls=None):
         random.shuffle(product_urls)
         current_url = None
         try:
-            while len(product_urls) > 0:
-                current_url = product_urls.pop()
-                product_page = safe_request(current_url)
-                scrape_product(product_page)
+            with alive_bar(len(product_urls), title="Scraping products", spinner="classic") as bar:
+                while len(product_urls) > 0:
+                    current_url = product_urls.pop()
+                    product_page = safe_request(current_url)
+                    scrape_product(product_page)
+                    bar()
         except Exception as err:
             print(err)
             base_scraper.add_scrape_error("Error scraping url:" + current_url)
