@@ -96,7 +96,6 @@ class BaseScraper:
         # Only write new record if price has changed. Safes db space.
         if self.get_product(product_id):
             if self.is_price_changed(product_id, price):
-                print("Update price")
                 query = (
                     "UPDATE Products SET Id=%s, name=%s, image=%s, price=%s, bonus=%s WHERE Id=%s")
                 self.write_to_db(query, (product_id, name, image, price, bonus, product_id))
