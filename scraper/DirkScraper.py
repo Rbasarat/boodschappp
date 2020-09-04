@@ -18,9 +18,9 @@ from BaseScraper import ScrapeType
 options = Options()
 options.headless = False
 driver_path = "./driver/chromedriver"
-base_scraper = BaseScraper("Albert Heijn", ScrapeType.FULL)
+base_scraper = BaseScraper("Dirk van den Broek", ScrapeType.FULL)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
-base_url = "https://www.ah.nl"
+base_url = "https://www.dirk.nl"
 
 
 # homepage = open("./testHtml/ah_producten.html", "rb")
@@ -58,13 +58,14 @@ def safe_request(url, element=None):
 
 
 def calculate_bonus(product):
-    bonus_block = product.find("div", {"class": "shield_root__YmXCB"})
+    bonus_block = product.find("div", {"class": "product-card__discount"})
     if bonus_block:
-        bonus_type = base_scraper.get_bonus_types(bonus_block.span.text)
+        bonus_text = ' '.join([x.text for x in bonus_block.find_all("span")])
+        bonus_type = base_scraper.get_bonus_types(bonus_text)
         if bonus_type:
             return bonus_type["Id"]
         else:
-            base_scraper.add_bonus_type(bonus_block.span.text)
+            base_scraper.add_bonus_type(bonus_text)
             return calculate_bonus(product)
     else:
         return None
@@ -73,32 +74,19 @@ def calculate_bonus(product):
 def get_urls():
     urls = []
     try:
-        homepage = safe_request(base_url + "/producten")
+        # homepage = safe_request(base_url)
+        homepage = open("testHtml/dirk_producten.html", "rb")
         soup = BeautifulSoup(homepage, "lxml")
-        scrape_urls = soup.find_all("div", {"class": "product-category-overview_category__1H99m"})
+        scrape_urls = soup.find_all("a", {"class": "site-header__product-categories__category"}, href=True)
         with alive_bar(len(scrape_urls), title="Retrieving urls...", spinner="classic") as bar:
             for url in scrape_urls:
-                category_url = url.find("a")["href"]
-                # Wijn page is different.
-                if "wijn" in category_url:
-                    category = safe_request(base_url + category_url)
+                if url["href"]:
+                    # category = safe_request(base_url + url["href"])
+                    category = open("testHtml/dirk_producten_category.html", "rb")
                     soup = BeautifulSoup(category, "lxml")
-                    product_soorten = soup.find("span", string="Wijnsoort",
-                                                attrs={'class': 'filter-group_titleText__2ErIs'}) \
-                        .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
-                        .find_all("a", {"class": "filter-group_filter__2kWhF"})
-                else:
-                    category = safe_request(base_url + category_url, "filter-group_showMore__3nXJH")
-                    soup = BeautifulSoup(category, "lxml")
-                    product_soorten = soup.find("span", string="Soorten", attrs={'class': 'filter-group_titleText__2ErIs'}) \
-                        .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
-                        .find_all("a", {"class": "filter-group_filter__2kWhF"})
-
-                for soort in product_soorten:
-                    soort_url = soort["href"]
-                    # skip this specific one since it has over 2k products
-                    if soort_url != "?soort=6407":
-                        urls.append(base_url + category_url + soort_url + "&page=68")
+                    product_soorten = soup.find("nav", {"class": "product-category-header__nav"}).find_all("a")
+                    for soort in product_soorten:
+                        urls.append(base_url + soort["href"])
                 bar()
 
         return urls
@@ -109,19 +97,15 @@ def get_urls():
 
 def scrape_product(product_page):
     soup = BeautifulSoup(product_page, "lxml")
-    products = soup.find("div", {"class": "search-lane-wrapper"}).find_all("article")
+    products = soup.find_all("div", {"class": "product-card"})
     for product in products:
-        gall_gall = product.find("svg", {"class": "svg--gall"})
-        etos = product.find("svg", {"class": "svg--etos"})
-        
-        if not gall_gall or etos:
-            name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
-            image = product.find("img")["src"]
-            product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
-            price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
-                product.find("span", {"class": "price-amount_fractional__3sfJy"}).text)
-            bonus = calculate_bonus(product)
-            base_scraper.add_product(product_id, name, image, price, bonus)
+        name = product.find("div", {"class": "product-card__name"}).text
+        image = product.find("img")["src"]
+        product_id = int(product.find("a", {"class", "product-card__image"})["href"].split("/")[-1])
+        price = (int(product.find("span", {"class": "product-card__price__euros"}).text.replace(".", "")) * 100) + int(
+            product.find("span", {"class": "product-card__price__cents"}).text)
+        bonus = calculate_bonus(product)
+        base_scraper.add_product(product_id, name, image, price, bonus)
 
 
 def parse_all(urls=None):
@@ -136,14 +120,15 @@ def parse_all(urls=None):
             with alive_bar(len(product_urls), title="Scraping products", spinner="classic") as bar:
                 while len(product_urls) > 0:
                     current_url = product_urls.pop()
-                    product_page = safe_request(current_url)
+                    # product_page = safe_request(current_url)
+                    product_page = open("testHtml/dirk_producten_category_soort.html", "rb")
                     scrape_product(product_page)
                     bar()
         except Exception as err:
             print(err)
             base_scraper.add_scrape_error("Error scraping url:" + current_url)
             parse_all(product_urls)
-
+    #
     else:
         base_scraper.add_scrape_error("No urls retrieved.")
 
