@@ -77,7 +77,7 @@ class BaseScraper:
             return True
 
     def get_bonus_types(self, query):
-        self.cursor.execute("SELECT Id FROM BonusType WHERE store_id = %s AND bonus_type LIKE %s",
+        self.cursor.execute("SELECT Id FROM BonusTypes WHERE store_id = %s AND bonus_type LIKE %s",
                             (self.store_id, "%{}%".format(query),))
         return self.cursor.fetchone()
 
@@ -87,8 +87,8 @@ class BaseScraper:
         self.write_to_db(query, (self.store_id, bonus,))
 
     def get_product(self, product_id):
-        self.cursor.execute("SELECT * FROM Products WHERE Id = %s",
-                            (product_id,))
+        self.cursor.execute("SELECT * FROM Products WHERE Id = %s AND store_id = %s",
+                            (product_id, self.store_id))
         return self.cursor.fetchone()
 
     # We already checked for null when calling this.
@@ -98,10 +98,10 @@ class BaseScraper:
             if self.is_price_changed(product_id, price):
                 print("Update price")
                 query = (
-                    "UPDATE Product	SET	Id=%s, name=%s, image=%s, price=%s, bonus=%s WHERE Id=%s")
+                    "UPDATE Products SET Id=%s, name=%s, image=%s, price=%s, bonus=%s WHERE Id=%s")
                 self.write_to_db(query, (product_id, name, image, price, bonus, product_id))
         else:
-            query = ("INSERT INTO Product (Id, store_id, name, image, price, bonus) "
+            query = ("INSERT INTO Products (Id, store_id, name, image, price, bonus) "
                      "VALUES (%s, %s, %s, %s, %s, %s)")
             product = (product_id, self.store_id, name, image, price, bonus)
             self.write_to_db(query, product)

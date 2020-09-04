@@ -4,7 +4,7 @@ Boodschappen lijst app.
 # To run this scraper:
 - Install chrome
 - Download chromedriver to ./scraper/driver/
-- `$ python AHScraper.py 1`
+- `$ python AHScraper.py`
 
 # TODO:
 - Set up logging for python

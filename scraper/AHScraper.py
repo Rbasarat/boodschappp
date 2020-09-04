@@ -18,9 +18,9 @@ from BaseScraper import ScrapeType
 options = Options()
 options.headless = False
 driver_path = "./driver/chromedriver.exe"
-base_scraper = BaseScraper("Albert Heijn", ScrapeType.SINGLE)
+base_scraper = BaseScraper("Albert Heijn", ScrapeType.Full)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
-ah_base_url = "https://www.ah.nl"
+base_url = "https://www.ah.nl"
 
 
 # homepage = open("./testHtml/ah_producten.html", "rb")
@@ -73,7 +73,7 @@ def calculate_bonus(product):
 def get_urls():
     urls = []
     try:
-        homepage = safe_request(ah_base_url + "/producten")
+        homepage = safe_request(base_url + "/producten")
         soup = BeautifulSoup(homepage, "lxml")
         scrape_urls = soup.find_all("div", {"class": "product-category-overview_category__1H99m"})
         with alive_bar(len(scrape_urls), title="Retrieving urls...", spinner="classic") as bar:
@@ -81,14 +81,14 @@ def get_urls():
                 category_url = url.find("a")["href"]
                 # Wijn page is different.
                 if "wijn" in category_url:
-                    category = safe_request(ah_base_url + category_url)
+                    category = safe_request(base_url + category_url)
                     soup = BeautifulSoup(category, "lxml")
                     product_soorten = soup.find("span", string="Wijnsoort",
                                                 attrs={'class': 'filter-group_titleText__2ErIs'}) \
                         .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
                         .find_all("a", {"class": "filter-group_filter__2kWhF"})
                 else:
-                    category = safe_request(ah_base_url + category_url, "filter-group_showMore__3nXJH")
+                    category = safe_request(base_url + category_url, "filter-group_showMore__3nXJH")
                     soup = BeautifulSoup(category, "lxml")
                     product_soorten = soup.find("span", string="Soorten", attrs={'class': 'filter-group_titleText__2ErIs'}) \
                         .find_parent("div", {"class": "collapsible-block-element_root__2MU-5"}) \
@@ -98,7 +98,7 @@ def get_urls():
                     soort_url = soort["href"]
                     # skip this specific one since it has over 2k products
                     if soort_url != "?soort=6407":
-                        urls.append(ah_base_url + category_url + soort_url + "&page=68")
+                        urls.append(base_url + category_url + soort_url + "&page=68")
                 bar()
 
         return urls
@@ -149,8 +149,7 @@ def parse_all(urls=None):
 
 
 if __name__ == '__main__':
-    if int(argv[1]) == 1:
-        parse_all()
+    parse_all()
 
     # This keeps reference alive so we can call finish scrape history.
     del base_scraper
