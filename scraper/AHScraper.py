@@ -149,8 +149,7 @@ def parse_all(urls=None):
 
 
 if __name__ == '__main__':
-    if int(argv[1]) == 1:
-        parse_all()
+    parse_all()
 
     # This keeps reference alive so we can call finish scrape history.
     del base_scraper
