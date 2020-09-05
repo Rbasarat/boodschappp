@@ -23,7 +23,7 @@ driver = webdriver.Chrome(options=options, executable_path=driver_path)
 base_url = "https://www.dirk.nl"
 
 
-# homepage = open("./testHtml/ah_producten.html", "rb")
+#         homepage = open("testHtml/dirk_producten.html", "rb")
 
 def safe_request(url, element=None):
     retry_count = 0
@@ -74,15 +74,13 @@ def calculate_bonus(product):
 def get_urls():
     urls = []
     try:
-        # homepage = safe_request(base_url)
-        homepage = open("testHtml/dirk_producten.html", "rb")
+        homepage = safe_request(base_url)
         soup = BeautifulSoup(homepage, "lxml")
         scrape_urls = soup.find_all("a", {"class": "site-header__product-categories__category"}, href=True)
         with alive_bar(len(scrape_urls), title="Retrieving urls...", spinner="classic") as bar:
             for url in scrape_urls:
                 if url["href"]:
-                    # category = safe_request(base_url + url["href"])
-                    category = open("testHtml/dirk_producten_category.html", "rb")
+                    category = safe_request(base_url + url["href"])
                     soup = BeautifulSoup(category, "lxml")
                     product_soorten = soup.find("nav", {"class": "product-category-header__nav"}).find_all("a")
                     for soort in product_soorten:
@@ -120,8 +118,7 @@ def parse_all(urls=None):
             with alive_bar(len(product_urls), title="Scraping products", spinner="classic") as bar:
                 while len(product_urls) > 0:
                     current_url = product_urls.pop()
-                    # product_page = safe_request(current_url)
-                    product_page = open("testHtml/dirk_producten_category_soort.html", "rb")
+                    product_page = safe_request(current_url)
                     scrape_product(product_page)
                     bar()
         except Exception as err:
