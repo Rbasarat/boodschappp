@@ -116,6 +116,8 @@ def scrape_product(product_page):
         
         if not gall_gall or etos:
             name = product.find("span", {"class": "line-clamp line-clamp--active title_lineclamp__10wki"}).text
+            amount = product.find("span", {"class": "price_unitSize__26KBz"}).text
+            name = " ".join([name, amount])
             image = product.find("img")["src"]
             product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
             price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(

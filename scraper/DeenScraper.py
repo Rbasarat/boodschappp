@@ -67,36 +67,38 @@ def scrape_product(product_page):
     soup = BeautifulSoup(product_page, "lxml")
     products = soup.find_all("li", {"class": "c-productgrid__item"})
     for product in products:
-        if len(product.contents) > 0:
+        if len(product.contents) > 0 and "c-productgrid__item--banner" not in product["class"]:
             name = product.find("h3").text
             image = product.find("img")["src"]
             product_id = int(product.find("div", {"class", "c-product-thumbnail"})["data-product-itemcode"])
+            test = product.find("span", {"class": "c-price"}).text
             price = int(product.find("span", {"class": "c-price"}).text.replace(",", ""))
             base_scraper.add_product(product_id, name, image, price, None)
 
 
 def parse_all(urls=None):
-    if urls:
-        product_urls = urls
-    else:
-        product_urls = get_urls()
-    if len(product_urls) > 0:
-        random.shuffle(product_urls)
-        current_url = None
-        try:
-            with alive_bar(len(product_urls), title="Scraping products", spinner="classic") as bar:
-                while len(product_urls) > 0:
-                    current_url = product_urls.pop()
-                    product_page = safe_request(current_url)
-                    scrape_product(product_page)
-                    bar()
-        except Exception as err:
-            print(err)
-            base_scraper.add_scrape_error("Error scraping url:" + current_url)
-            parse_all(product_urls)
+    # if urls:
+    #     product_urls = urls
+    # else:
+    #     product_urls = get_urls()
+    # if len(product_urls) > 0:
+    #     random.shuffle(product_urls)
+    #     current_url = None
+    try:
+        # with alive_bar(len(product_urls), title="Scraping products", spinner="classic") as bar:
+        #     while len(product_urls) > 0:
+        #         current_url = product_urls.pop()
+        #         product_page = safe_request(current_url)
+        product_page = open("./testHtml/deen_boodschappen_producten.html", "rb")
+        scrape_product(product_page)
+                # bar()
+    except Exception as err:
+        print(err)
+            # base_scraper.add_scrape_error("Error scraping url:" + current_url)
+            # parse_all(product_urls)
 
-    else:
-        base_scraper.add_scrape_error("No urls retrieved.")
+    # else:
+    #     base_scraper.add_scrape_error("No urls retrieved.")
 
 
 if __name__ == '__main__':
