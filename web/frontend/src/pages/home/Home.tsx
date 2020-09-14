@@ -19,11 +19,6 @@ const useStyles = makeStyles(() => ({
     background: "red",
     textAlign: "center",
   },
-  logo: {
-    width: "75px",
-    marginLeft: "5px",
-    marginRight: "5px",
-  },
   welcomeText: {
     margin: 0,
   },
@@ -48,11 +43,10 @@ const Home: React.FC = () => {
             <h2 className={classes.welcomeText}>Welkom bij</h2>
             <Logo />
           </Grid>
-          <text>Selecteer de supermarkten die je wilt vergelijken</text>
           <Grid container item xs={12} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
             <Stores />
           </Grid>
-          <Grid container item xs={9} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
+          <Grid container item xs={3} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
             <Search />
           </Grid>
         </Grid>
