@@ -1,8 +1,9 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, Grid } from "@material-ui/core";
-import Logo from "../../components/logo/Logo";
-import Search from "../../components/Search/Search";
+import Logo from "../../components/logo";
+import Search from "../../components/search";
+import Stores from "../../components/stores";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -49,9 +50,7 @@ const Home: React.FC = () => {
           </Grid>
           <text>Selecteer de supermarkten die je wilt vergelijken</text>
           <Grid container item xs={12} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
-            <img src="/icons/ah_logo.png" alt="Boodschappp logo" className={classes.logo} />
-            <img src="/icons/deen_logo.svg" alt="Boodschappp logo" className={classes.logo} />
-            <img src="/icons/dirk_logo.png" alt="Boodschappp logo" className={classes.logo} />
+            <Stores />
           </Grid>
           <Grid container item xs={9} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
             <Search />
