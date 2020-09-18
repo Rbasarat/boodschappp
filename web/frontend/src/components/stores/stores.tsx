@@ -21,13 +21,18 @@ const useStyles = makeStyles(() => ({
 const Stores: React.FC = () => {
   const classes = useStyles();
 
-  const [stores, setStore] = useState([]);
+  const [stores, setStore] = useState([
+    { store: "ah", active: false, products: [] },
+    { store: "deen", active: false, products: [] },
+    { store: "dirk", active: false, products: [] },
+  ]);
 
   const updateStore = (id: string) => {
     const newArr = [...stores];
     newArr.map((item) => {
       if (item.store == id) {
         item.active = !item.active;
+        return item;
       }
     });
 
@@ -38,7 +43,7 @@ const Stores: React.FC = () => {
     <Grid container direction="column" alignItems="center" justify="center">
       <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
       <Grid container direction="row" alignItems="center" justify="center" spacing={2}>
-        <Grid item xs={3} lg={1}>
+        <Grid item xs={3} md={1}>
           <img
             id="ah"
             src="/icons/ah_logo.svg"
@@ -50,7 +55,7 @@ const Stores: React.FC = () => {
             }}
           />
         </Grid>
-        <Grid item xs={3} lg={1}>
+        <Grid item xs={3} md={1}>
           <img
             src="/icons/deen_logo.svg"
             alt="Boodschappp logo"
@@ -61,7 +66,7 @@ const Stores: React.FC = () => {
             }}
           />
         </Grid>
-        <Grid item xs={3} lg={1}>
+        <Grid item xs={3} md={1}>
           <img
             src="/icons/dirk_logo.svg"
             alt="Boodschappp logo"
