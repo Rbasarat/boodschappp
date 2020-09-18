@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
@@ -13,45 +13,41 @@ const useStyles = makeStyles(() => ({
     minHeight: "100vh",
   },
   mbottom: {
-    marginBottom: "15px",
+    marginBottom: "2em",
   },
   title: {
-    background: "red",
     textAlign: "center",
+    marginBottom: "2em",
   },
   welcomeText: {
     margin: 0,
   },
 }));
 
+const initialState = [
+  { store: "ah", active: false, products: [] },
+  { store: "deen", active: false, products: [] },
+  { store: "dirk", active: false, products: [] },
+];
+
 const Home: React.FC = () => {
   const classes = useStyles();
-
+  const [stores, setStore] = useState(initialState);
   return (
-    <div className={classes.root}>
-      <Container maxWidth="xl">
-        <Grid container direction="column" alignItems="center" justify="center" className={classes.grid}>
-          <Grid
-            container
-            item
-            xs={12}
-            direction="column"
-            alignItems="center"
-            justify="center"
-            className={classes.mbottom}
-          >
-            <h2 className={classes.welcomeText}>Welkom bij</h2>
-            <Logo />
-          </Grid>
-          <Grid container item xs={12} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
-            <Stores />
-          </Grid>
-          <Grid container item xs={3} direction="row" alignItems="center" justify="center" className={classes.mbottom}>
-            <Search />
-          </Grid>
+    <Container>
+      <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
+        <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
+          <h2 className={classes.welcomeText}>Welkom bij</h2>
+          <Logo />
         </Grid>
-      </Container>
-    </div>
+        <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+          <Stores />
+        </Grid>
+        <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+          <Search />
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

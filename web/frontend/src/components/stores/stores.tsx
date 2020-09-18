@@ -1,7 +1,8 @@
 import { makeStyles } from "@material-ui/core/styles";
-import { GridList, GridListTile, GridListTileBar } from "@material-ui/core";
+import { Grid } from "@material-ui/core";
+import React, { useState } from "react";
+import { arch } from "os";
 
-import React from "react";
 const useStyles = makeStyles(() => ({
   logo: {
     width: "100%",
@@ -13,25 +14,66 @@ const useStyles = makeStyles(() => ({
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: "translateZ(0)",
   },
+  marginBottom: {
+    marginBottom: "1em",
+  },
 }));
-
 const Stores: React.FC = () => {
   const classes = useStyles();
+
+  const [stores, setStore] = useState([]);
+
+  const updateStore = (id: string) => {
+    const newArr = [...stores];
+    newArr.map((item) => {
+      if (item.store == id) {
+        item.active = !item.active;
+      }
+    });
+
+    setStore(newArr);
+  };
+
   return (
-    <div>
-      <text>Selecteer de supermarkten die je wilt vergelijken</text>{" "}
-      <GridList className={classes.gridList} cols={12}>
-        <GridListTile>
-          <img src="/icons/ah_logo.svg" alt="Boodschappp logo" className={classes.logo} />
-        </GridListTile>
-        <GridListTile>
-          <img src="/icons/deen_logo.svg" alt="Boodschappp logo" className={classes.logo} />
-        </GridListTile>
-        <GridListTile>
-          <img src="/icons/dirk_logo2.svg" alt="Boodschappp logo" className={classes.logo} />
-        </GridListTile>
-      </GridList>
-    </div>
+    <Grid container direction="column" alignItems="center" justify="center">
+      <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
+      <Grid container direction="row" alignItems="center" justify="center" spacing={2}>
+        <Grid item xs={3} lg={1}>
+          <img
+            id="ah"
+            src="/icons/ah_logo.svg"
+            alt="Boodschappp logo"
+            className={classes.logo}
+            onClick={() => {
+              updateStore("ah");
+              console.log(stores[0]);
+            }}
+          />
+        </Grid>
+        <Grid item xs={3} lg={1}>
+          <img
+            src="/icons/deen_logo.svg"
+            alt="Boodschappp logo"
+            className={classes.logo}
+            onClick={() => {
+              updateStore("dirk");
+              console.log(stores[0]);
+            }}
+          />
+        </Grid>
+        <Grid item xs={3} lg={1}>
+          <img
+            src="/icons/dirk_logo.svg"
+            alt="Boodschappp logo"
+            className={classes.logo}
+            onClick={() => {
+              updateStore("deen");
+              console.log(stores[0]);
+            }}
+          />
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };
 
