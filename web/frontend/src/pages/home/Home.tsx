@@ -4,6 +4,7 @@ import { Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
 import Search from "../../components/search";
 import Stores from "../../components/stores";
+import { StoresProvider } from "../../context/storeContext";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -32,21 +33,23 @@ const initialState = [
 
 const Home: React.FC = () => {
   const classes = useStyles();
-  const [stores, setStore] = useState(initialState);
+
   return (
     <Container>
-      <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
-        <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
-          <h2 className={classes.welcomeText}>Welkom bij</h2>
-          <Logo />
+      <StoresProvider>
+        <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
+          <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
+            <h2 className={classes.welcomeText}>Welkom bij</h2>
+            <Logo />
+          </Grid>
+          <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+            <Stores />
+          </Grid>
+          <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+            <Search />
+          </Grid>
         </Grid>
-        <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-          <Stores />
-        </Grid>
-        <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-          <Search />
-        </Grid>
-      </Grid>
+      </StoresProvider>
     </Container>
   );
 };

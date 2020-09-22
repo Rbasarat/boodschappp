@@ -1,8 +1,8 @@
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid } from "@material-ui/core";
-import React, { useState } from "react";
-import { arch } from "os";
-
+import React, { useContext } from "react";
+import { StoresContext } from "../../context/storeContext";
+import { Types } from "../../context/storeReducer";
 const useStyles = makeStyles(() => ({
   logo: {
     width: "100%",
@@ -20,25 +20,16 @@ const useStyles = makeStyles(() => ({
 }));
 const Stores: React.FC = () => {
   const classes = useStyles();
+  const { state, dispatch } = useContext(StoresContext);
 
-  const [stores, setStore] = useState([
-    { store: "ah", active: false, products: [] },
-    { store: "deen", active: false, products: [] },
-    { store: "dirk", active: false, products: [] },
-  ]);
-
-  const updateStore = (id: string) => {
-    const newArr = [...stores];
-    newArr.map((item) => {
-      if (item.store == id) {
-        item.active = !item.active;
-        return item;
-      }
+  const setStoreIsActive = (id: string) => {
+    dispatch({
+      type: Types.setIsActive,
+      payload: {
+        id: id,
+      },
     });
-
-    setStore(newArr);
   };
-
   return (
     <Grid container direction="column" alignItems="center" justify="center">
       <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
@@ -50,9 +41,13 @@ const Stores: React.FC = () => {
             alt="Boodschappp logo"
             className={classes.logo}
             onClick={() => {
-              updateStore("ah");
-              console.log(stores[0]);
+              setStoreIsActive("ah");
             }}
+            hidden={
+              state.stores.find((ele) => {
+                if (ele.id == "ah") return ele;
+              })?.active
+            }
           />
         </Grid>
         <Grid item xs={3} md={1}>
@@ -61,21 +56,12 @@ const Stores: React.FC = () => {
             alt="Boodschappp logo"
             className={classes.logo}
             onClick={() => {
-              updateStore("dirk");
-              console.log(stores[0]);
+              setStoreIsActive("ah");
             }}
           />
         </Grid>
         <Grid item xs={3} md={1}>
-          <img
-            src="/icons/dirk_logo.svg"
-            alt="Boodschappp logo"
-            className={classes.logo}
-            onClick={() => {
-              updateStore("deen");
-              console.log(stores[0]);
-            }}
-          />
+          <img src="/icons/dirk_logo.svg" alt="Boodschappp logo" className={classes.logo} />
         </Grid>
       </Grid>
     </Grid>
