@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Container, Grid } from "@material-ui/core";
+import { CircularProgress, Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
 import Search from "../../components/search";
 import Stores from "../../components/stores";
@@ -25,12 +25,16 @@ const useStyles = makeStyles(() => ({
   welcomeText: {
     margin: 0,
   },
+  spinner: {
+    minHeight: "99%",
+  },
 }));
 
 const Home: React.FC = () => {
   const classes = useStyles();
   const [loading, setIsLoading] = useState<boolean>(true);
   const [stores, setStores] = useState<InitialStateType>({ stores: [] });
+
   useEffect(() => {
     axios
       .get("http://slowwly.robertomurray.co.uk/delay/3000/url/https://jsonplaceholder.typicode.com/users")
@@ -57,7 +61,7 @@ const Home: React.FC = () => {
           <Logo />
         </Grid>
         {loading ? (
-          <div>Loading data</div>
+          <CircularProgress className={classes.spinner} />
         ) : (
           <StoresProvider initialState={stores}>
             <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
