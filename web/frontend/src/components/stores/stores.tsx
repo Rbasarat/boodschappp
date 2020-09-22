@@ -1,7 +1,8 @@
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid } from "@material-ui/core";
 import React, { useContext } from "react";
-import { StoresContext } from "../../context";
+import { StoresContext } from "../../context/storeContext";
+import { Types } from "../../context/storeReducer";
 const useStyles = makeStyles(() => ({
   logo: {
     width: "100%",
@@ -19,8 +20,16 @@ const useStyles = makeStyles(() => ({
 }));
 const Stores: React.FC = () => {
   const classes = useStyles();
-  const { stores, setStoreIsActive } = useContext(StoresContext);
+  const { state, dispatch } = useContext(StoresContext);
 
+  const setStoreIsActive = (id: string) => {
+    dispatch({
+      type: Types.setIsActive,
+      payload: {
+        id: id,
+      },
+    });
+  };
   return (
     <Grid container direction="column" alignItems="center" justify="center">
       <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
@@ -33,12 +42,23 @@ const Stores: React.FC = () => {
             className={classes.logo}
             onClick={() => {
               setStoreIsActive("ah");
-              console.log(stores);
             }}
+            hidden={
+              state.stores.find((ele) => {
+                if (ele.id == "ah") return ele;
+              })?.active
+            }
           />
         </Grid>
         <Grid item xs={3} md={1}>
-          <img src="/icons/deen_logo.svg" alt="Boodschappp logo" className={classes.logo} />
+          <img
+            src="/icons/deen_logo.svg"
+            alt="Boodschappp logo"
+            className={classes.logo}
+            onClick={() => {
+              setStoreIsActive("ah");
+            }}
+          />
         </Grid>
         <Grid item xs={3} md={1}>
           <img src="/icons/dirk_logo.svg" alt="Boodschappp logo" className={classes.logo} />

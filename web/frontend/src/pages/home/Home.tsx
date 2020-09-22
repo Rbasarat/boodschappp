@@ -4,7 +4,7 @@ import { Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
 import Search from "../../components/search";
 import Stores from "../../components/stores";
-import { StoresContextProvider } from "../../context";
+import { StoresProvider } from "../../context/storeContext";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -36,7 +36,7 @@ const Home: React.FC = () => {
 
   return (
     <Container>
-      <StoresContextProvider>
+      <StoresProvider>
         <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
           <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
             <h2 className={classes.welcomeText}>Welkom bij</h2>
@@ -49,7 +49,7 @@ const Home: React.FC = () => {
             <Search />
           </Grid>
         </Grid>
-      </StoresContextProvider>
+      </StoresProvider>
     </Container>
   );
 };
