@@ -20,13 +20,11 @@ const useStyles = makeStyles(() => ({
   },
   title: {
     textAlign: "center",
+    marginTop: "8em",
     marginBottom: "2em",
   },
   welcomeText: {
     margin: 0,
-  },
-  spinner: {
-    minHeight: "99%",
   },
 }));
 
@@ -37,9 +35,8 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://slowwly.robertomurray.co.uk/delay/3000/url/https://jsonplaceholder.typicode.com/users")
+      .get("http://slowwly.robertomurray.co.uk/delay/1500/url/https://jsonplaceholder.typicode.com/users")
       .then(function (response) {
-        console.log(response);
         setStores({
           stores: [
             { id: "ah", active: false, name: "ah" },
@@ -55,13 +52,15 @@ const Home: React.FC = () => {
   }, [loading]);
   return (
     <Container>
-      <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
+      <Grid container item direction="column" className={classes.grid}>
         <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
           <h2 className={classes.welcomeText}>Welkom bij</h2>
           <Logo />
         </Grid>
         {loading ? (
-          <CircularProgress className={classes.spinner} />
+          <Grid item container xs={12} alignItems="center" justify="center">
+            <CircularProgress />
+          </Grid>
         ) : (
           <StoresProvider initialState={stores}>
             <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
