@@ -1,4 +1,4 @@
-import React, { createContext, useReducer } from "react";
+import React, { createContext, useReducer, ReactNode } from "react";
 import { storeReducer, StoreActions } from "./storeReducer";
 
 type StoreType = {
@@ -7,22 +7,15 @@ type StoreType = {
   active: boolean;
 };
 
-type InitialStateType = {
+export type InitialStateType = {
   stores: StoreType[];
-};
-const initialState: InitialStateType = {
-  stores: [
-    { id: "ah", active: false, name: "ah" },
-    { id: "deen", active: false, name: "deen" },
-    { id: "dirk", active: false, name: "dirk" },
-  ],
 };
 
 const StoresContext = createContext<{
   state: InitialStateType;
   dispatch: React.Dispatch<StoreActions>;
 }>({
-  state: initialState,
+  state: { stores: [] },
   dispatch: () => null,
 });
 
@@ -30,7 +23,12 @@ const mainReducer = ({ stores }: InitialStateType, action: StoreActions) => ({
   stores: storeReducer(stores, action),
 });
 
-const StoresProvider: React.FC = ({ children }) => {
+interface Props {
+  children: ReactNode;
+  initialState: InitialStateType;
+}
+
+const StoresProvider: React.FC<Props> = ({ children, initialState }: Props) => {
   const [state, dispatch] = useReducer(mainReducer, initialState);
 
   return <StoresContext.Provider value={{ state, dispatch }}>{children}</StoresContext.Provider>;

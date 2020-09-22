@@ -1,4 +1,4 @@
-type ActionMap<M extends { [index: string]: any }> = {
+type ActionMap<M extends { [index: string]: unknown }> = {
   [Key in keyof M]: M[Key] extends undefined
     ? {
         type: Key;
@@ -27,7 +27,7 @@ type StorePayload = {
 
 export type StoreActions = ActionMap<StorePayload>[keyof ActionMap<StorePayload>];
 
-export const storeReducer = (state: StoreType[], action: StoreActions) => {
+export const storeReducer = (state: StoreType[], action: StoreActions): StoreType[] => {
   switch (action.type) {
     case "SET_IS_ACTIVE":
       return state.map((item) => (item.id === action.payload.id ? { ...item, active: !item.active } : item));

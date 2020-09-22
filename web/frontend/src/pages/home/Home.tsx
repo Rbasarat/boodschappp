@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
 import Search from "../../components/search";
 import Stores from "../../components/stores";
-import { StoresProvider } from "../../context/storeContext";
+import { InitialStateType, StoresProvider } from "../../context/storeContext";
+import axios from "axios";
+import { useState } from "react";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -25,31 +27,48 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const initialState = [
-  { store: "ah", active: false, products: [] },
-  { store: "deen", active: false, products: [] },
-  { store: "dirk", active: false, products: [] },
-];
-
 const Home: React.FC = () => {
   const classes = useStyles();
-
+  const [loading, setIsLoading] = useState<boolean>(true);
+  const [stores, setStores] = useState<InitialStateType>({ stores: [] });
+  useEffect(() => {
+    axios
+      .get("http://slowwly.robertomurray.co.uk/delay/3000/url/https://jsonplaceholder.typicode.com/users")
+      .then(function (response) {
+        console.log(response);
+        setStores({
+          stores: [
+            { id: "ah", active: false, name: "ah" },
+            { id: "deen", active: false, name: "deen" },
+            { id: "dirk", active: false, name: "dirk" },
+          ],
+        });
+        setIsLoading(false);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }, [loading]);
   return (
     <Container>
-      <StoresProvider>
-        <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
-          <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
-            <h2 className={classes.welcomeText}>Welkom bij</h2>
-            <Logo />
-          </Grid>
-          <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-            <Stores />
-          </Grid>
-          <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-            <Search />
-          </Grid>
+      <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
+        <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
+          <h2 className={classes.welcomeText}>Welkom bij</h2>
+          <Logo />
         </Grid>
-      </StoresProvider>
+        {loading ? (
+          <div>Loading data</div>
+        ) : (
+          <StoresProvider initialState={stores}>
+            <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+              <Stores />
+            </Grid>
+            <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+              <Search />
+            </Grid>
+          </StoresProvider>
+        )}
+      </Grid>
     </Container>
   );
 };
