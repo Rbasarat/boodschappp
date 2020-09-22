@@ -1,8 +1,7 @@
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid } from "@material-ui/core";
-import React, { useState } from "react";
-import { arch } from "os";
-
+import React, { useContext } from "react";
+import { StoresContext } from "../../context";
 const useStyles = makeStyles(() => ({
   logo: {
     width: "100%",
@@ -20,24 +19,7 @@ const useStyles = makeStyles(() => ({
 }));
 const Stores: React.FC = () => {
   const classes = useStyles();
-
-  const [stores, setStore] = useState([
-    { store: "ah", active: false, products: [] },
-    { store: "deen", active: false, products: [] },
-    { store: "dirk", active: false, products: [] },
-  ]);
-
-  const updateStore = (id: string) => {
-    const newArr = [...stores];
-    newArr.map((item) => {
-      if (item.store == id) {
-        item.active = !item.active;
-        return item;
-      }
-    });
-
-    setStore(newArr);
-  };
+  const { stores, setStoreIsActive } = useContext(StoresContext);
 
   return (
     <Grid container direction="column" alignItems="center" justify="center">
@@ -50,32 +32,16 @@ const Stores: React.FC = () => {
             alt="Boodschappp logo"
             className={classes.logo}
             onClick={() => {
-              updateStore("ah");
-              console.log(stores[0]);
+              setStoreIsActive("ah");
+              console.log(stores);
             }}
           />
         </Grid>
         <Grid item xs={3} md={1}>
-          <img
-            src="/icons/deen_logo.svg"
-            alt="Boodschappp logo"
-            className={classes.logo}
-            onClick={() => {
-              updateStore("dirk");
-              console.log(stores[0]);
-            }}
-          />
+          <img src="/icons/deen_logo.svg" alt="Boodschappp logo" className={classes.logo} />
         </Grid>
         <Grid item xs={3} md={1}>
-          <img
-            src="/icons/dirk_logo.svg"
-            alt="Boodschappp logo"
-            className={classes.logo}
-            onClick={() => {
-              updateStore("deen");
-              console.log(stores[0]);
-            }}
-          />
+          <img src="/icons/dirk_logo.svg" alt="Boodschappp logo" className={classes.logo} />
         </Grid>
       </Grid>
     </Grid>

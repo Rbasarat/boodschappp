@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, Grid } from "@material-ui/core";
 import Logo from "../../components/logo";
 import Search from "../../components/search";
 import Stores from "../../components/stores";
+import { StoresContextProvider } from "../../context";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -25,29 +26,23 @@ const useStyles = makeStyles(() => ({
 }));
 
 const initialState = [
-  { store: "ah", active: false, products: [] },
-  { store: "deen", active: false, products: [] },
-  { store: "dirk", active: false, products: [] },
+  { store: "ah", active: false },
+  { store: "deen", active: false },
+  { store: "dirk", active: false },
 ];
 
 const Home: React.FC = () => {
   const classes = useStyles();
-  const [stores, setStore] = useState(initialState);
   return (
-    <Container>
-      <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
-        <Grid container item direction="column" alignItems="center" justify="center" className={classes.title}>
-          <h2 className={classes.welcomeText}>Welkom bij</h2>
-          <Logo />
+    <StoresContextProvider>
+      <Container>
+        <Grid container item direction="column" alignItems="center" justify="center" className={classes.grid}>
+          <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
+            <Stores />
+          </Grid>
         </Grid>
-        <Grid item container xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-          <Stores />
-        </Grid>
-        <Grid container item xs={12} alignItems="center" justify="center" className={classes.mbottom}>
-          <Search />
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </StoresContextProvider>
   );
 };
 
