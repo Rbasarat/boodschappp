@@ -1,7 +1,6 @@
 import random
 import re
 import time
-from sys import argv
 
 from alive_progress import alive_bar
 from bs4 import BeautifulSoup
@@ -17,7 +16,7 @@ from BaseScraper import ScrapeType
 
 options = Options()
 options.headless = False
-driver_path = "./driver/chromedriver"
+driver_path = "./driver/chromedriver.exe"
 base_scraper = BaseScraper("Albert Heijn", ScrapeType.FULL)
 driver = webdriver.Chrome(options=options, executable_path=driver_path)
 base_url = "https://www.ah.nl"
@@ -37,7 +36,7 @@ def safe_request(url, element=None):
         time.sleep(2)
         if element:
             # I don't know if this solves the problem that the element is no clickable when executing the click.
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, element)))
+            elem = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, element)))
             driver.find_elements_by_class_name(element)[1].click()
 
         return driver.page_source
