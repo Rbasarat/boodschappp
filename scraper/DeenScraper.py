@@ -67,10 +67,11 @@ def scrape_product(product_page):
     soup = BeautifulSoup(product_page, "lxml")
     products = soup.find_all("li", {"class": "c-productgrid__item"})
     for product in products:
-        if len(product.contents) > 0:
+        if len(product.contents) > 0 and "c-productgrid__item--banner" not in product["class"]:
             name = product.find("h3").text
             image = product.find("img")["src"]
             product_id = int(product.find("div", {"class", "c-product-thumbnail"})["data-product-itemcode"])
+            test = product.find("span", {"class": "c-price"}).text
             price = int(product.find("span", {"class": "c-price"}).text.replace(",", ""))
             base_scraper.add_product(product_id, name, image, price, None)
 

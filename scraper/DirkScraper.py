@@ -98,6 +98,8 @@ def scrape_product(product_page):
     products = soup.find_all("div", {"class": "product-card"})
     for product in products:
         name = product.find("div", {"class": "product-card__name"}).text
+        amount = product.find("div", {"class": "product-card__description"}).text
+        name = " ".join([name, amount])
         image = product.find("img")["src"]
         product_id = int(product.find("a", {"class", "product-card__image"})["href"].split("/")[-1])
         price = (int(product.find("span", {"class": "product-card__price__euros"}).text.replace(".", "")) * 100) + int(
