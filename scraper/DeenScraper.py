@@ -71,7 +71,6 @@ def scrape_product(product_page):
             name = product.find("h3").text
             image = product.find("img")["src"]
             product_id = int(product.find("div", {"class", "c-product-thumbnail"})["data-product-itemcode"])
-            test = product.find("span", {"class": "c-price"}).text
             price = int(product.find("span", {"class": "c-price"}).text.replace(",", ""))
             base_scraper.add_product(product_id, name, image, price, None)
 

@@ -118,7 +118,6 @@ def scrape_product(product_page):
             amount = product.find("span", {"class": "price_unitSize__26KBz"})
             if amount:
                 name = " ".join([name, amount.text])
-            name = " ".join([name, amount])
             image = product.find("img")["src"]
             product_id = re.findall(r"\/wi([a-zA-Z0-9]+)\/", product.find("a")["href"], re.MULTILINE)[0]
             price = (int(product.find("span", {"class": "price-amount_integer__N3JDd"}).text) * 100) + int(
