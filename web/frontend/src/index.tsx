@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import Home from "./pages/home/Home";
+import Home from "./pages/home/home";
 import * as serviceWorker from "./serviceWorker";
 import { CssBaseline } from "@material-ui/core";
 
