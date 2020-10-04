@@ -35,7 +35,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://slowwly.robertomurray.co.uk/delay/1500/url/https://jsonplaceholder.typicode.com/users")
+      .get("https://deelay.me/2500/https://jsonplaceholder.typicode.com/users")
       .then(function (response) {
         setStores({
           stores: [
