@@ -1,6 +1,7 @@
 # boodschappp
 Boodschappen lijst app. Web application
 
+To run this application just do the dotnet command
 # Stack:
  - .NET Core Web Api
  - React front end (the standard cra)
