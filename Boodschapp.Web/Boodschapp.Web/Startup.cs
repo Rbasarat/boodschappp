@@ -1,10 +1,13 @@
+using System;
+using Domain.EfModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Boodschapp.Web
 {
@@ -24,6 +27,10 @@ namespace Boodschapp.Web
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/build"; });
+            services.AddDbContext<BoodschapppContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("SqlServer"), mySqlOptions => mySqlOptions
+                    .ServerVersion(new Version(8, 0, 18), ServerType.MySql)
+                ));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

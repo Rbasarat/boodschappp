@@ -130,3 +130,6 @@ dmypy.json
 scraper/.idea
 .idea
 .DS_Store
+
+**/**/appsettings.Development.json
+**/**/appsettings.Production.json

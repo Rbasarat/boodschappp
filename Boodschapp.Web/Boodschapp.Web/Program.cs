@@ -18,6 +18,13 @@ namespace Boodschapp.Web
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    config.AddJsonFile("appsettings.json", true, true);
+                    config.AddJsonFile($"appsettings.{environmentName}.json", true, true);
+                    config.AddEnvironmentVariables();
+                })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }
