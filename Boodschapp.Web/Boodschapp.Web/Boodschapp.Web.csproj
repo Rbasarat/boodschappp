@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Boodschappp_Domain" Version="1.0.1" />
+        <PackageReference Include="Boodschappp_Domain" Version="1.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.7" />
     </ItemGroup>
 
