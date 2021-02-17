@@ -1,15 +1,13 @@
-import { makeStyles } from "@material-ui/core/styles";
 import { Grid } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 import React, { useContext } from "react";
 import { StoresContext } from "../../context/storeContext";
 import { Types } from "../../context/storeReducer";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 const useStyles = makeStyles(() => ({
   logo: {
     width: "100%",
     height: "100%",
-  },
-  inActive: {
-    opacity: 0.33,
   },
   gridList: {
     flexWrap: "nowrap",
@@ -18,6 +16,16 @@ const useStyles = makeStyles(() => ({
   },
   marginBottom: {
     marginBottom: "1em",
+  },
+  checkMark: {
+    float: "right",
+    position: "relative",
+    top: "10px",
+    left: "20px",
+    color: "green",
+  },
+  gridItem: {
+    margin: "10px",
   },
 }));
 const Stores: React.FC = () => {
@@ -34,12 +42,12 @@ const Stores: React.FC = () => {
   };
 
   const storeImages = state.stores.map((store) => (
-    <Grid key={store.id} item xs={3} md={1}>
+    <Grid key={store.id} item xs={3} md={1} className={classes.gridItem}>
       <img
         id={store.id}
         src={store.logo}
         alt="Winkel logo"
-        className={`${classes.logo} ${store.isActive ? "" : classes.inActive}`}
+        className={`${classes.logo}`}
         onClick={() => {
           setStoreIsActive(store.id);
         }}
