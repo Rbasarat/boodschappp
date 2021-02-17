@@ -6,6 +6,7 @@ type StoreType = {
   storeName: string;
   isActive: boolean;
   logo: string;
+  isSelected: boolean;
 };
 
 export type InitialStateType = {

@@ -10,7 +10,7 @@ type ActionMap<M extends { [index: string]: unknown }> = {
 };
 
 export enum Types {
-  setIsActive = "SET_IS_ACTIVE",
+  setIsSelected = "SET_IS_SELECTED",
 }
 
 type StoreType = {
@@ -18,10 +18,11 @@ type StoreType = {
   storeName: string;
   isActive: boolean;
   logo: string;
+  isSelected: boolean;
 };
 
 type StorePayload = {
-  [Types.setIsActive]: {
+  [Types.setIsSelected]: {
     id: string;
   };
 };
@@ -30,8 +31,8 @@ export type StoreActions = ActionMap<StorePayload>[keyof ActionMap<StorePayload>
 
 export const storeReducer = (state: StoreType[], action: StoreActions): StoreType[] => {
   switch (action.type) {
-    case "SET_IS_ACTIVE":
-      return state.map((item) => (item.id === action.payload.id ? { ...item, isActive: !item.isActive } : item));
+    case "SET_IS_SELECTED":
+      return state.map((item) => (item.id === action.payload.id ? { ...item, isSelected: !item.isSelected } : item));
     default:
       return state;
   }
