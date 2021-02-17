@@ -8,7 +8,9 @@ const useStyles = makeStyles(() => ({
     width: "100%",
     height: "100%",
   },
-
+  inActive: {
+    opacity: 0.33,
+  },
   gridList: {
     flexWrap: "nowrap",
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
@@ -30,39 +32,31 @@ const Stores: React.FC = () => {
       },
     });
   };
+
+  const storeImages = state.stores.map((store) => (
+    <Grid key={store.id} item xs={3} md={1}>
+      <img
+        id={store.id}
+        src={store.logo}
+        alt="Winkel logo"
+        className={`${classes.logo} ${store.isActive ? "" : classes.inActive}`}
+        onClick={() => {
+          setStoreIsActive(store.id);
+        }}
+        // hidden={
+        //   !state.stores.find((ele) => {
+        //     if (ele.id == store.id) return ele;
+        //   })?.isActive
+        // }
+      />
+    </Grid>
+  ));
+
   return (
     <Grid container direction="column" alignItems="center" justify="center">
       <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
       <Grid container direction="row" alignItems="center" justify="center" spacing={2}>
-        <Grid item xs={3} md={1}>
-          <img
-            id="ah"
-            src="/icons/ah_logo.svg"
-            alt="Boodschappp logo"
-            className={classes.logo}
-            onClick={() => {
-              setStoreIsActive("ah");
-            }}
-            hidden={
-              state.stores.find((ele) => {
-                if (ele.id == "ah") return ele;
-              })?.active
-            }
-          />
-        </Grid>
-        <Grid item xs={3} md={1}>
-          <img
-            src="/icons/deen_logo.svg"
-            alt="Boodschappp logo"
-            className={classes.logo}
-            onClick={() => {
-              setStoreIsActive("ah");
-            }}
-          />
-        </Grid>
-        <Grid item xs={3} md={1}>
-          <img src="/icons/dirk_logo.svg" alt="Boodschappp logo" className={classes.logo} />
-        </Grid>
+        {storeImages}
       </Grid>
     </Grid>
   );
