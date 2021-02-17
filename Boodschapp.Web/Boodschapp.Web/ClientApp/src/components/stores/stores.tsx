@@ -43,11 +43,6 @@ const Stores: React.FC = () => {
         onClick={() => {
           setStoreIsActive(store.id);
         }}
-        // hidden={
-        //   !state.stores.find((ele) => {
-        //     if (ele.id == store.id) return ele;
-        //   })?.isActive
-        // }
       />
     </Grid>
   ));
@@ -56,7 +51,11 @@ const Stores: React.FC = () => {
     <Grid container direction="column" alignItems="center" justify="center">
       <div className={classes.marginBottom}>Selecteer de supermarkten die je wilt vergelijken</div>
       <Grid container direction="row" alignItems="center" justify="center" spacing={2}>
-        {storeImages}
+        {state.stores.length > 0 ? (
+          storeImages
+        ) : (
+          <h2>Er zijn op dit moment geen supermarkten beschikbaar. Excuses voor het ongemak.</h2>
+        )}
       </Grid>
     </Grid>
   );
