@@ -3,8 +3,10 @@ import { storeReducer, StoreActions } from "./storeReducer";
 
 type StoreType = {
   id: string;
-  name: string;
-  active: boolean;
+  storeName: string;
+  isActive: boolean;
+  logo: string;
+  isSelected: boolean;
 };
 
 export type InitialStateType = {

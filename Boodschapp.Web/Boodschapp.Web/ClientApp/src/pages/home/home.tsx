@@ -35,14 +35,10 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("https://deelay.me/2500/https://jsonplaceholder.typicode.com/users")
+      .get("/api/stores")
       .then(function (response) {
         setStores({
-          stores: [
-            { id: "ah", active: false, name: "ah" },
-            { id: "deen", active: false, name: "deen" },
-            { id: "dirk", active: false, name: "dirk" },
-          ],
+          stores: response.data,
         });
         setIsLoading(false);
       })
